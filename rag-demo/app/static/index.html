@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RAG Demo</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; background: #f7f9fc; color: #222; }
+    .card { max-width: 900px; margin: 0 auto; background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    h1 { margin-top: 0; }
+    .row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    input[type="text"], input[type="file"], textarea { width: 100%; padding: 10px; border: 1px solid #d0d7de; border-radius: 8px; box-sizing: border-box; }
+    button { padding: 10px 16px; border: none; border-radius: 8px; background: #2563eb; color: white; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+    textarea { min-height: 120px; resize: vertical; }
+    .result { margin-top: 16px; padding: 12px; background: #f3f4f6; border-radius: 8px; white-space: pre-wrap; }
+    .status { margin-top: 8px; color: #4b5563; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>RAG Demo</h1>
+    <h3>1. 上传文档</h3>
+    <input id="fileInput" type="file" accept=".txt,.md,.markdown" />
+    <div class="row" style="margin-top: 12px;">
+      <button onclick="uploadDocument()">上传并建索引</button>
+    </div>
+    <div id="uploadStatus" class="status"></div>
+
+    <h3 style="margin-top: 24px;">2. 问答</h3>
+    <input id="questionInput" type="text" placeholder="请输入问题，例如：什么是 Milvus？" />
+    <div class="row" style="margin-top: 12px;">
+      <button onclick="askQuestion()">提问</button>
+    </div>
+    <div id="chatStatus" class="status"></div>
+    <div id="answerResult" class="result">等待回答...</div>
+  </div>
+
+  <script>
+    async function uploadDocument() {
+      const fileInput = document.getElementById('fileInput');
+      const status = document.getElementById('uploadStatus');
+      if (!fileInput.files.length) {
+        status.textContent = '请选择一个文件。';
+        return;
+      }
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      status.textContent = '正在上传...';
+      try {
+        const response = await fetch('/api/documents/upload', { method: 'POST', body: formData });
+        const data = await response.json();
+        status.textContent = response.ok ? '上传成功。' : (data.detail || '上传失败');
+      } catch (err) {
+        status.textContent = '上传失败：' + err.message;
+      }
+    }
+
+    async function askQuestion() {
+      const question = document.getElementById('questionInput').value.trim();
+      const status = document.getElementById('chatStatus');
+      const result = document.getElementById('answerResult');
+      if (!question) {
+        status.textContent = '请输入问题。';
+        return;
+      }
+      status.textContent = '正在生成答案...';
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question })
+        });
+        const data = await response.json();
+        result.textContent = data.answer || '暂无回答';
+        status.textContent = response.ok ? '回答已生成。' : (data.detail || '请求失败');
+      } catch (err) {
+        status.textContent = '请求失败：' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>

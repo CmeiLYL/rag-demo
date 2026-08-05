@@ -1,0 +1,35 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+rag-demo/.venv
+
+# Milvus/etcd/MinIO 本地数据目录（不入库）
+rag-demo/volumes/
+rag-demo/etcd-data/
+rag-demo/milvus-data/
+rag-demo/minio-data/
+rag-demo/etcd
+rag-demo/milvus
+rag-demo/minio
+
+# 运行时模型（BGE-M3 等大文件不入库）
+rag-demo/models/
+rag-demo/app/models/
+models/
+
+# 环境配置（含远程 Ollama 地址等）
+.env
+*.env
+!.env.example
+
+# 日志与缓存
+*.log
+.huggingface/
+.cache/
